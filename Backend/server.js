@@ -21,25 +21,19 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 app.use(compression());
 
+const authRoutes = require('./Routes/authRoutes');
+const mutualFundsRoutes = require('./Routes/mutualFundsRoutes');
+const savedFundsRoutes = require('./Routes/savedFundsRoutes');
+
+app.use('/api/auth', authRoutes);
+app.use('/api/mutual-funds', mutualFundsRoutes);
+app.use('/api/saved-funds', savedFundsRoutes);
+
 app.get('/', (req, res) => {
     res.send('Welcome to Mutual funds Backend');
 });
 
-app.get("/api/mutualfunds/search", async (req, res) => {
-  const query = req.query.q;
-  if (!query) {
-    return res.status(400).json({ message: "Query parameter 'q' is required" });
-  }
 
-  try {
-    const response = await axios.get(`https://api.mfapi.in/mf/search?q=${query}`);
-    console.log("Response from mfapi:", response.data);
-    res.status(200).json(response.data);
-  } catch (error) {
-    console.error("Error fetching data from mfapi:", error.message);
-    res.status(500).json({ message: "Failed to fetch data from mfapi.in" });
-  }
-});
 
 connectDB()
     .then(() => {

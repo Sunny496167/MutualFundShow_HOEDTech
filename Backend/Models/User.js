@@ -68,7 +68,7 @@ userSchema.methods.comparePassword = async function(candidatePassword) {
 }
 
 // Method to generate email verification code
-userSchema.methids.generateEmailVerificationCode = function() {
+userSchema.methods.generateEmailVerificationCode = function() {
     const verificationCode = crypto.randomBytes(32).toString('hex');
     this.emailVerificationCode = crypto.createHash('sha256').update(verificationCode).digest('hex');
     this.emailVerificationExpires = Date.now() + 24 * 60 * 60 * 1000; // 24 hours
