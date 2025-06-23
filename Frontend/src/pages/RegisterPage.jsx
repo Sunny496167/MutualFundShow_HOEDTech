@@ -1,9 +1,14 @@
-import React from 'react'
+// src/pages/RegisterPage.tsx
+import React from 'react';
+import AuthLayout from '../layouts/AuthLayout';
+import RegisterForm from '../features/auth/RegisterForm';
 
-const RegisterPage = () => {
+const RegisterPage: React.FC = () => {
   return (
-    <div>RegisterPage</div>
-  )
-}
+    <AuthLayout>
+      <RegisterForm />
+    </AuthLayout>
+  );
+};
 
-export default RegisterPage
+export default RegisterPage;
