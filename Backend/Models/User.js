@@ -45,7 +45,7 @@ const userSchema = new mongoose.Schema({
 
 // Hash password before saving
 userSchema.pre('save', async function(next) {
-    if(this.isModified('password'))
+    if(!this.isModified('password'))
         return next();
 
     try {
@@ -69,17 +69,18 @@ userSchema.methods.comparePassword = async function(candidatePassword) {
 
 // Method to generate email verification code
 userSchema.methods.generateEmailVerificationCode = function() {
-    const verificationCode = crypto.randomBytes(32).toString('hex');
-    this.emailVerificationCode = crypto.createHash('sha256').update(verificationCode).digest('hex');
+    const emailVerificationCode = crypto.randomBytes(32).toString('hex');
+    this.emailVerificationCode = emailVerificationCode;
     this.emailVerificationExpires = Date.now() + 24 * 60 * 60 * 1000; // 24 hours
+    return emailVerificationCode;
 }
 
 // Method to generate reset password token
 userSchema.methods.generateResetPasswordToken = function() {
-    const resetToken = crypto.randomBytes(32).toString('hex');
-    this.resetPasswordToken = crypto.createHash('sha256').update(resetToken).digest('hex');
+    const resetPasswordToken = crypto.randomBytes(32).toString('hex');
+    this.resetPasswordToken = resetPasswordToken;
     this.resetPasswordExpires = Date.now() + 10 * 60 * 1000; // 10 minutes
-    return resetToken;
+    return resetPasswordToken;
 }
 
 const User = mongoose.model('User', userSchema);

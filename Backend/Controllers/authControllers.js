@@ -4,7 +4,7 @@ const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 const { NotFoundError, BadRequestError, UnauthorizedError, ForbiddenError, InternalServerError  } = require('../Utils/errors');
 const { sendConformationEmail, sendPasswordResetEmail, sendWelcomeEmail } = require('../config/nodemailer');
-const { stat } = require('fs');
+
 
 // Register a new user
 const registerUser = async (req, res) => {
@@ -37,7 +37,15 @@ const registerUser = async (req, res) => {
 
     const emailVerificationCode = crypto.randomBytes(32).toString('hex');
 
-    const newUser =  new User.create({
+// Send raw code in the email
+    try {
+        await sendConformationEmail(name.trim(), email.toLowerCase(), emailVerificationCode);
+    } catch (error) {
+        console.error('Error sending confirmation email:', error);
+        throw new InternalServerError('Failed to send confirmation email.');
+    }
+
+    const newUser =  await User.create({
         name: name.trim(),
         email: email.toLowerCase(),
         password: password,
@@ -46,14 +54,6 @@ const registerUser = async (req, res) => {
         isEmailVerified: false
     });
 
-    // Send welcome email
-    try{
-        await sendConformationEmail(newUser.email, newUser.name, emailVerificationCode);
-    }
-    catch(error) {
-        console.error('Error sending confirmation email:', error);
-        throw new InternalServerError('Failed to send confirmation email.');
-    }
 
     res.status(201).json({
         status: 'success',
@@ -76,7 +76,10 @@ const verifyEmail = async (req, res) => {
             throw new BadRequestError('Email verification code is required.');
         }
 
+        console.log('Email verification code:', emailVerificationCode);
+
         const user = await User.findOne({ emailVerificationCode });
+
 
         if (!user) {
             throw new NotFoundError('Invalid or expired verification code.');
@@ -93,7 +96,7 @@ const verifyEmail = async (req, res) => {
         await user.save();
 
         try {
-            await sendWelcomeEmail(user.email, user.name);
+            await sendWelcomeEmail(user.name, user.email);
         }
         catch (error) {
             console.error('Error sending welcome email:', error);
@@ -103,7 +106,7 @@ const verifyEmail = async (req, res) => {
         const token = jwt.sign(
             { userId: user._id },
             process.env.JWT_SECRET,
-            process.env.JWT_EXPIRY || '1d'
+            { expiresIn: process.env.JWT_EXPIRY || '1d' }
         );
 
         res.status(200).json({
@@ -154,7 +157,7 @@ const loginUser = async (req, res) => {
         const token = jwt.sign(
             { userId: user._id },
             process.env.JWT_SECRET,
-            process.env.JWT_EXPIRY || '1d'
+            { expiresIn: process.env.JWT_EXPIRY || '1d' }
         );
 
         res.status(200).json({
@@ -198,7 +201,7 @@ const requestPasswordReset = async (req, res) => {
         await user.save();
 
         try {
-            await sendPasswordResetEmail(user.email, user.name, resetToken);
+            await sendPasswordResetEmail(user.name, user.email, resetToken);
         } catch (error) {
             console.error('Error sending password reset email:', error);
             throw new InternalServerError('Failed to send password reset email.');

@@ -6,7 +6,7 @@ const { loginLimiter, registerLimiter } = require('../Middlewares/rateLimiter');
 const router = express.Router();
 
 router.post('/register', registerLimiter, registerUser);
-router.post('/veryfy-email', authenticateUser, verifyEmail);
+router.get('/verify-email/:emailVerificationCode', verifyEmail);
 router.post('/login', loginLimiter, loginUser);
 router.post('/request-password-reset', requestPasswordReset);
 router.post('/reset-password', resetPassword);
