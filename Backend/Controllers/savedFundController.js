@@ -2,33 +2,66 @@
 const SavedFund = require('../Models/SavedFunds');
 const { NotFoundError, BadRequestError, InternalServerError } = require('../Utils/errors');
 
+
+// get all saved funds 
 const getSavedFunds = async (req, res) => {
-    try{
-        const savedFunds = await SavedFund.find();
-        if (!savedFunds || savedFunds.length === 0) {
-            throw new NotFoundError('No saved funds found');
-        }
-        res.status(200).json(savedFunds);
-    }
-    catch (error) {
+    try {
+        const savedFunds = await SavedFund.find({ userId: req.user.userId });
+
+        res.status(200).json({
+            success: true,
+            count: savedFunds.length,
+            data: savedFunds
+        });
+    } catch (error) {
+        console.error('Error fetching saved funds:', error);
         throw new InternalServerError('Failed to fetch saved funds');
     }
-}
+};
 
+// save a new fund
 const saveFund = async (req, res) => {
-    const { fundName, fundId, amount } = req.body;
-    if (!fundName || !fundId || !amount) {
-        throw new BadRequestError('Fund name, ID, and amount are required');
-    }
-    try {
-        const newSavedFund = new SavedFund({ fundName, fundId, amount });
-        await newSavedFund.save();
-        res.status(201).json(newSavedFund);
-    } catch (error) {
-        throw new InternalServerError('Failed to save fund');
-    }
-}
+  try {
+    const { schemeName, schemeCode, fundType, category, amc, notes } = req.body;
 
+    // Validate required fields
+    if (!schemeName || !schemeCode || !fundType || !category || !amc) {
+      throw new BadRequestError('All fund details are required.');
+    }
+
+    // Optional: check if already saved
+    const existingFund = await SavedFund.findOne({
+      userId: req.user.userId,
+      schemeCode
+    });
+
+    if (existingFund) {
+      throw new BadRequestError('Fund already saved.');
+    }
+
+    const newFund = await SavedFund.create({
+      userId: req.user.userId,
+      schemeName,
+      schemeCode,
+      fundType,
+      category,
+      amc,
+      notes: notes || ''
+    });
+
+    res.status(201).json({
+      success: true,
+      message: 'Fund saved successfully',
+      data: newFund
+    });
+  } catch (error) {
+    console.error('Error saving fund:', error);
+    if (error instanceof BadRequestError) throw error;
+    throw new InternalServerError('Failed to save fund');
+  }
+};
+
+// delete a saved fund
 const deleteSavedFund = async (req, res) => {
     const { id } = req.params;
     if (!id) {
@@ -45,6 +78,7 @@ const deleteSavedFund = async (req, res) => {
     }
 }
 
+// get saved fund details by id
 const getSavedFundById = async (req, res) => {
     const { id } = req.params;
     if (!id) {
