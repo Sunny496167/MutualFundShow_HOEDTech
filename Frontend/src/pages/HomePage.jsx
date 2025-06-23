@@ -5,7 +5,7 @@ import MainLayout from '../layouts/MainLayout';
 
 const { Title, Paragraph } = Typography;
 
-const HomePage: React.FC = () => {
+const HomePage = () => {
   return (
     <MainLayout>
       <div>

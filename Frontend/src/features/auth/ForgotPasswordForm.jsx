@@ -1,4 +1,4 @@
-// src/features/auth/ForgotPasswordForm.tsx
+// src/features/auth/ForgotPasswordForm.jsx
 import React, { useState } from 'react';
 import { Form, Input, Button, Alert, Typography, Result } from 'antd';
 import { MailOutlined, ArrowLeftOutlined } from '@ant-design/icons';
@@ -7,13 +7,13 @@ import { useAuth } from '../../hooks/useAuth';
 
 const { Title, Text } = Typography;
 
-const ForgotPasswordForm: React.FC = () => {
+const ForgotPasswordForm = () => {
   const [form] = Form.useForm();
   const [emailSent, setEmailSent] = useState(false);
   const [submittedEmail, setSubmittedEmail] = useState('');
   const { requestPasswordReset, isLoading, error, clearError } = useAuth();
 
-  const handleSubmit = async (values: { email: string }) => {
+  const handleSubmit = async (values) => {
     try {
       const result = await requestPasswordReset(values.email);
       if (result.type === 'auth/requestPasswordReset/fulfilled') {

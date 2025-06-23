@@ -1,5 +1,5 @@
-// src/features/auth/LoginForm.tsx
-import React, { useEffect, useState } from 'react';
+// src/features/auth/LoginForm.jsx
+import React, { useEffect } from 'react';
 import { Form, Input, Button, Alert, Typography, Divider } from 'antd';
 import { MailOutlined, LockOutlined } from '@ant-design/icons';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
@@ -7,20 +7,13 @@ import { useAuth } from '../../hooks/useAuth';
 
 const { Title, Text } = Typography;
 
-interface LocationState {
-  from?: {
-    pathname: string;
-  };
-}
-
-const LoginForm: React.FC = () => {
+const LoginForm = () => {
   const [form] = Form.useForm();
   const navigate = useNavigate();
   const location = useLocation();
   const { login, isLoading, error, isAuthenticated, clearError } = useAuth();
-  const [showForgotPassword, setShowForgotPassword] = useState(false);
 
-  const from = (location.state as LocationState)?.from?.pathname || '/';
+  const from = location.state?.from?.pathname || '/';
 
   useEffect(() => {
     if (isAuthenticated) {
@@ -34,7 +27,7 @@ const LoginForm: React.FC = () => {
     };
   }, [clearError]);
 
-  const handleSubmit = async (values: { email: string; password: string }) => {
+  const handleSubmit = async (values) => {
     try {
       const result = await login(values);
       if (result.type === 'auth/login/fulfilled') {
@@ -46,7 +39,6 @@ const LoginForm: React.FC = () => {
   };
 
   const handleForgotPassword = () => {
-    setShowForgotPassword(true);
     navigate('/forgot-password');
   };
 

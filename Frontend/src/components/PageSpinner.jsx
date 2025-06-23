@@ -1,13 +1,8 @@
-// src/components/PageSpinner.tsx
+// src/components/PageSpinner.jsx
 import React from 'react';
 import { Spin } from 'antd';
 
-interface PageSpinnerProps {
-  tip?: string;
-  size?: 'small' | 'default' | 'large';
-}
-
-const PageSpinner: React.FC<PageSpinnerProps> = ({ 
+const PageSpinner = ({ 
   tip = 'Loading...', 
   size = 'large' 
 }) => {

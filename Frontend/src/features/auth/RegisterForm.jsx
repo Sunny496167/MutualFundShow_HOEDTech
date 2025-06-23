@@ -1,4 +1,4 @@
-// src/features/auth/RegisterForm.tsx
+// src/features/auth/RegisterForm.jsx
 import React, { useEffect } from 'react';
 import { Form, Input, Button, Alert, Typography, Divider } from 'antd';
 import { UserOutlined, MailOutlined, LockOutlined } from '@ant-design/icons';
@@ -7,7 +7,7 @@ import { useAuth } from '../../hooks/useAuth';
 
 const { Title, Text } = Typography;
 
-const RegisterForm: React.FC = () => {
+const RegisterForm = () => {
   const [form] = Form.useForm();
   const navigate = useNavigate();
   const { 
@@ -37,7 +37,7 @@ const RegisterForm: React.FC = () => {
     };
   }, [clearError, clearRegistrationSuccess]);
 
-  const handleSubmit = async (values: { name: string; email: string; password: string }) => {
+  const handleSubmit = async (values) => {
     try {
       await register(values);
     } catch (err) {

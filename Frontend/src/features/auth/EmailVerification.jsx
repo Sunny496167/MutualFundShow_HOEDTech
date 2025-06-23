@@ -1,14 +1,13 @@
-// src/features/auth/EmailVerification.tsx
+// src/features/auth/EmailVerification.jsx
 import React, { useEffect, useState } from 'react';
 import { Result, Button, Spin, Alert } from 'antd';
 import { CheckCircleOutlined, CloseCircleOutlined } from '@ant-design/icons';
-import { Link, useParams, useNavigate } from 'react-router-dom';
+import { Link, useParams } from 'react-router-dom';
 import { useAuth } from '../../hooks/useAuth';
 
-const EmailVerification: React.FC = () => {
-  const { token } = useParams<{ token: string }>();
-  const navigate = useNavigate();
-  const [verificationStatus, setVerificationStatus] = useState<'loading' | 'success' | 'error'>('loading');
+const EmailVerification = () => {
+  const { token } = useParams();
+  const [verificationStatus, setVerificationStatus] = useState('loading');
   const { verifyEmail, error } = useAuth();
 
   useEffect(() => {

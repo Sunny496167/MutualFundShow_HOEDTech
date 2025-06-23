@@ -1,15 +1,11 @@
-// src/layouts/AuthLayout.tsx
+// src/layouts/AuthLayout.jsx
 import React from 'react';
 import { Layout, Card, Row, Col } from 'antd';
 import Logo from '../components/Logo';
 
 const { Content } = Layout;
 
-interface AuthLayoutProps {
-  children: React.ReactNode;
-}
-
-const AuthLayout: React.FC<AuthLayoutProps> = ({ children }) => {
+const AuthLayout = ({ children }) => {
   return (
     <Layout style={{ minHeight: '100vh', backgroundColor: '#f0f2f5' }}>
       <Content style={{ padding: '50px 0' }}>

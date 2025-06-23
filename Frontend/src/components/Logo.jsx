@@ -1,15 +1,11 @@
-// src/components/Logo.tsx
+// src/components/Logo.jsx
 import React from 'react';
 import { Typography } from 'antd';
 import { FundOutlined } from '@ant-design/icons';
 
 const { Title } = Typography;
 
-interface LogoProps {
-  collapsed?: boolean;
-}
-
-const Logo: React.FC<LogoProps> = ({ collapsed = false }) => {
+const Logo = ({ collapsed = false }) => {
   if (collapsed) {
     return (
       <div style={{ 

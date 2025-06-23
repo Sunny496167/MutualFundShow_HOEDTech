@@ -1,45 +1,10 @@
-//srec/api/authApi.js
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
-
-export interface User {
-    id: string;
-    email: string;
-    name: string;
-    isEmailVerified: boolean;
-}
-
-export interface LoginRequest{
-    email: string;
-    password: string;
-}
-
-export interface RegisterRequest {
-    name: string;
-    email: string;
-    password: string;
-}
-
-export interface AuthResponse {
-    success: boolean;
-    message: string;
-    user?: User;
-    token?: string;
-}
-
-export interface PasswordResetRequest  {
-    token: string;
-}
-
-export interface ResetPasswordRequest  {
-    token: string;
-    newPassword: string;
-}
-
+//src/api/authApi.js
+const API_BASE_URL = 'http://localhost:5000/api';
 
 class AuthApi {
-    private async makeRequest(endpoint: String, options: RequestInit = {}): Promise<any> {
+    async makeRequest(endpoint, options = {}) {
         const token = localStorage.getItem('token');
-        const config: RequestInit = {
+        const config = {
             headers: {
                 'Content-Type': 'application/json',
                 ...(token && { 'Authorization': `Bearer ${token}` }),
@@ -55,15 +20,15 @@ class AuthApi {
         return data;
     }
 
-    async register(userData: RegisterRequest): Promise<AuthResponse> {
+    async register(userData) {
         return this.makeRequest('/auth/register', {
             method: 'POST',
             body: JSON.stringify(userData),
         });
     }
 
-    async login(credentials: LoginRequest): Promise<AuthResponse> {
-        const response = this.makeRequest('/auth/login', {
+    async login(credentials) {
+        const response = await this.makeRequest('/auth/login', {
             method: 'POST',
             body: JSON.stringify(credentials),
         });
@@ -73,44 +38,44 @@ class AuthApi {
         return response;
     }
 
-    async logout(): Promise<void> {
+    async logout() {
         try {
             await this.makeRequest('/auth/logout', { 
                 method: 'POST' 
             });
-        }finally {
+        } finally {
             localStorage.removeItem('token');
         }
     }
 
-    async getUserProfile(): Promise<User> {
+    async getUserProfile() {
         const response = await this.makeRequest('/auth/me');
         return response.user;
     }
 
-    async requestPasswordReset(email: string): Promise<{message: string}> {
+    async requestPasswordReset(email) {
         return this.makeRequest('/auth/request-password-reset', {
             method: 'POST',
             body: JSON.stringify({ email }),
         });
     }
 
-    async resetPassword(data: ResetPasswordRequest): Promise<{ message: string }> {
+    async resetPassword(data) {
         return this.makeRequest('/auth/reset-password', {
             method: 'POST',
             body: JSON.stringify(data),
         });
     }
 
-    async verifyEmail(token: string): Promise<{ message: string }> {
+    async verifyEmail(token) {
         return this.makeRequest(`/auth/verify-email/${token}`);
     }
 
-    isAuthenticated(): boolean {
+    isAuthenticated() {
         return !!localStorage.getItem('token');
     }
 
-    getToken(): string | null {
+    getToken() {
         return localStorage.getItem('token');
     }
 }

@@ -1,4 +1,4 @@
-// src/layouts/MainLayout.tsx
+// src/layouts/MainLayout.jsx
 import React, { useState } from 'react';
 import { Layout, Menu, Button, Dropdown, Avatar, Space, Typography } from 'antd';
 import {
@@ -18,11 +18,7 @@ import Logo from '../components/Logo';
 const { Header, Sider, Content } = Layout;
 const { Text } = Typography;
 
-interface MainLayoutProps {
-  children: React.ReactNode;
-}
-
-const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
+const MainLayout = ({ children }) => {
   const [collapsed, setCollapsed] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
@@ -49,7 +45,7 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
       label: 'Settings',
     },
     {
-      type: 'divider' as const,
+      type: 'divider',
     },
     {
       key: 'logout',
@@ -163,3 +159,5 @@ const MainLayout: React.FC<MainLayoutProps> = ({ children }) => {
     </Layout>
   );
 };
+
+export default MainLayout;

@@ -1,8 +1,8 @@
-// src/pages/EmailVerificationPage.tsx
+// src/pages/EmailVerificationPage.jsx
 import React from 'react';
 import EmailVerification from '../features/auth/EmailVerification';
 
-const EmailVerificationPage: React.FC = () => {
+const EmailVerificationPage = () => {
   return <EmailVerification />;
 };
 

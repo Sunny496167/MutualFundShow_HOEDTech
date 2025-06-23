@@ -1,17 +1,16 @@
 import { useCallback, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { clearError, clearRegistrationSuccess, fetchUserProfile, loginUser, logoutUser, registerUser, requestPasswordReset, setAuthenticated } from "../features/auth/authSlice";
-
+import { clearError, clearRegistrationSuccess, fetchUserProfile, loginUser, logoutUser, registerUser, requestPasswordReset, resetPassword, verifyEmail, setAuthenticated } from "../features/auth/authSlice";
 
 export const useAuth = () => {
     const dispatch = useDispatch();
-    const authState = useSelector((state: RootState) => state.auth);
+    const authState = useSelector((state) => state.auth);
 
-    const login = useCallback(async (Credentials: LoginRequest) => {
-        return dispatch(loginUser(Credentials));
-    },[dispatch]);
+    const login = useCallback(async (credentials) => {
+        return dispatch(loginUser(credentials));
+    }, [dispatch]);
 
-    const register = useCallback(async (userData: RegisterRequest) => {
+    const register = useCallback(async (userData) => {
         return dispatch(registerUser(userData));
     }, [dispatch]);
 
@@ -19,21 +18,21 @@ export const useAuth = () => {
         return dispatch(logoutUser());
     }, [dispatch]);
 
-    const getUserProfile  = useCallback(async () => {
+    const getUserProfile = useCallback(async () => {
         return dispatch(fetchUserProfile());
     }, [dispatch]);
 
-    const requestReset = useCallback(async (email: string) => {
+    const requestReset = useCallback(async (email) => {
         return dispatch(requestPasswordReset(email));
     }, [dispatch]);
 
-    const resetUserPassword = useCallback(async (token: String, newPassword: String) => {
+    const resetUserPassword = useCallback(async (token, newPassword) => {
         return dispatch(resetPassword({ token, newPassword }));
     }, [dispatch]);
 
-    const verifyUserEmail = useCallback(async (token: string) => {
+    const verifyUserEmail = useCallback(async (token) => {
         return dispatch(verifyEmail(token));
-    },[dispatch]);
+    }, [dispatch]);
 
     const clearAuthError = useCallback(() => {
         dispatch(clearError());
@@ -43,16 +42,16 @@ export const useAuth = () => {
         dispatch(clearRegistrationSuccess());
     }, [dispatch]);
 
-    const updateAuthState = useCallback((status: Boolean) => {
+    const updateAuthState = useCallback((status) => {
         dispatch(setAuthenticated(status));
-    },[dispatch]);
+    }, [dispatch]);
 
     useEffect(() => {
         const token = localStorage.getItem('token');
         if (token && !authState.user) {
             dispatch(fetchUserProfile());
         }
-    },[dispatch, authState.user]);
+    }, [dispatch, authState.user]);
 
     return {
         ...authState,
@@ -67,5 +66,4 @@ export const useAuth = () => {
         clearRegistrationSuccess: clearRegSuccess,
         setAuthenticated: updateAuthState,
     };
-
-}
+};

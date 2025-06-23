@@ -1,4 +1,4 @@
-// src/features/auth/ResetPasswordForm.tsx
+// src/features/auth/ResetPasswordForm.jsx
 import React, { useEffect, useState } from 'react';
 import { Form, Input, Button, Alert, Typography, Result } from 'antd';
 import { LockOutlined, CheckCircleOutlined } from '@ant-design/icons';
@@ -7,9 +7,9 @@ import { useAuth } from '../../hooks/useAuth';
 
 const { Title, Text } = Typography;
 
-const ResetPasswordForm: React.FC = () => {
+const ResetPasswordForm = () => {
   const [form] = Form.useForm();
-  const { token } = useParams<{ token: string }>();
+  const { token } = useParams();
   const navigate = useNavigate();
   const [resetSuccess, setResetSuccess] = useState(false);
   const { resetPassword, isLoading, error, clearError } = useAuth();
@@ -26,7 +26,7 @@ const ResetPasswordForm: React.FC = () => {
     };
   }, [clearError]);
 
-  const handleSubmit = async (values: { password: string }) => {
+  const handleSubmit = async (values) => {
     if (!token) return;
     
     try {

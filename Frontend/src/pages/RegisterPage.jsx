@@ -1,9 +1,9 @@
-// src/pages/RegisterPage.tsx
+// src/pages/RegisterPage.jsx
 import React from 'react';
 import AuthLayout from '../layouts/AuthLayout';
 import RegisterForm from '../features/auth/RegisterForm';
 
-const RegisterPage: React.FC = () => {
+const RegisterPage = () => {
   return (
     <AuthLayout>
       <RegisterForm />

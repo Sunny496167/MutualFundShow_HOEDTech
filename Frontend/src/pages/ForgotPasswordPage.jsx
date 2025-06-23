@@ -1,9 +1,9 @@
-// src/pages/ForgotPasswordPage.tsx
+// src/pages/ForgotPasswordPage.jsx
 import React from 'react';
 import AuthLayout from '../layouts/AuthLayout';
 import ForgotPasswordForm from '../features/auth/ForgotPasswordForm';
 
-const ForgotPasswordPage: React.FC = () => {
+const ForgotPasswordPage = () => {
   return (
     <AuthLayout>
       <ForgotPasswordForm />
