@@ -23,7 +23,8 @@ import {
   DollarOutlined,
   TrophyOutlined,
   PercentageOutlined,
-  BankOutlined
+  BankOutlined,
+  HeartOutlined
 } from '@ant-design/icons';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '../../app/store';
@@ -37,40 +38,65 @@ const FundDetails = () => {
   const navigate = useNavigate();
   const dispatch = useAppDispatch();
   
-  const { currentFund, loading, error, saving, saveError } = useAppSelector(state => state.fundDetails);
-  const { isAuthenticated } = useAppSelector(state => state.auth);
+  const { 
+    currentFund, 
+    loading, 
+    error, 
+    saving, 
+    saveError,
+    saveSuccess 
+  } = useAppSelector(state => state.fundDetails);
+  const { isAuthenticated, user } = useAppSelector(state => state.auth);
 
+  // Fetch fund details on component mount
   useEffect(() => {
     if (id) {
       dispatch(fetchFundDetails(id));
     }
+    
+    // Cleanup on unmount
+    return () => {
+      dispatch(clearErrors());
+    };
   }, [dispatch, id]);
 
+  // Handle save success/error messages
   useEffect(() => {
     if (saveError) {
       message.error(saveError);
       dispatch(clearErrors());
     }
-  }, [saveError, dispatch]);
+    
+    if (saveSuccess) {
+      message.success('Fund saved to your watchlist successfully!');
+      dispatch(clearErrors());
+    }
+  }, [saveError, saveSuccess, dispatch]);
 
+  // Handle save fund to watchlist
   const handleSaveFund = async () => {
     if (!isAuthenticated) {
-      message.warning('Please login to save funds');
+      message.warning('Please login to save funds to watchlist');
       navigate('/login');
       return;
     }
 
-    if (currentFund) {
-      try {
-        await dispatch(saveFundToWatchlist(currentFund.id)).unwrap();
-        message.success('Fund saved to your watchlist!');
-      } catch  {
-        // Error is handled by useEffect above
-      }
+    if (!currentFund) {
+      message.error('Fund data not available');
+      return;
+    }
+
+    try {
+      await dispatch(saveFundToWatchlist(currentFund)).unwrap();
+    } catch (error) {
+      // Error handling is done in useEffect above
+      console.error('Failed to save fund:', error);
     }
   };
 
+  // Utility functions
   const formatCurrency = (amount) => {
+    if (!amount && amount !== 0) return 'N/A';
     return new Intl.NumberFormat('en-IN', {
       style: 'currency',
       currency: 'INR',
@@ -79,6 +105,8 @@ const FundDetails = () => {
   };
 
   const formatAUM = (aum) => {
+    if (!aum && aum !== 0) return 'N/A';
+    
     if (aum >= 10000000) {
       return `₹${(aum / 10000000).toFixed(1)} Cr`;
     } else if (aum >= 100000) {
@@ -88,9 +116,13 @@ const FundDetails = () => {
   };
 
   const getRiskColor = (riskLevel) => {
+    if (!riskLevel) return 'default';
+    
     switch (riskLevel.toLowerCase()) {
       case 'low': return 'green';
       case 'moderate': return 'orange';
+      case 'moderately low': return 'geekblue';
+      case 'moderately high': return 'gold';
       case 'high': return 'red';
       case 'very high': return 'volcano';
       default: return 'default';
@@ -98,46 +130,67 @@ const FundDetails = () => {
   };
 
   const formatDate = (dateString) => {
-    return new Date(dateString).toLocaleDateString('en-IN', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
+    if (!dateString) return 'N/A';
+    
+    try {
+      return new Date(dateString).toLocaleDateString('en-IN', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      });
+    } catch {
+      return 'Invalid Date';
+    }
   };
 
   const getReturnColor = (returnValue) => {
+    if (returnValue === null || returnValue === undefined) return '#666';
     return returnValue >= 0 ? '#52c41a' : '#f5222d';
   };
 
   const getReturnIcon = (returnValue) => {
+    if (returnValue === null || returnValue === undefined) return null;
     return returnValue >= 0 ? <ArrowUpOutlined /> : <ArrowDownOutlined />;
   };
 
+  const formatReturn = (returnValue) => {
+    if (returnValue === null || returnValue === undefined) return 'N/A';
+    return returnValue.toFixed(2);
+  };
+
+  // Loading state
   if (loading) {
     return <PageSpinner />;
   }
 
+  // Error state
   if (error) {
     return (
-      <div style={{ padding: 24 }}>
+      <div style={{ padding: 24, maxWidth: 800, margin: '0 auto' }}>
         <Alert
           message="Error Loading Fund Details"
           description={error}
           type="error"
           showIcon
           action={
-            <Button size="small" danger onClick={() => navigate('/')}>
-              Go Back
-            </Button>
+            <Space>
+              <Button size="small" onClick={() => dispatch(fetchFundDetails(id))}>
+                Retry
+              </Button>
+              <Button size="small" danger onClick={() => navigate('/')}>
+                Go Back
+              </Button>
+            </Space>
           }
         />
       </div>
     );
   }
 
+  // Fund not found state
   if (!currentFund) {
     return (
-      <div style={{ padding: 24 }}>
+      <div style={{ padding: 24, maxWidth: 800, margin: '0 auto' }}>
         <Alert
           message="Fund Not Found"
           description="The requested mutual fund could not be found."
@@ -145,7 +198,7 @@ const FundDetails = () => {
           showIcon
           action={
             <Button size="small" onClick={() => navigate('/')}>
-              Go Back
+              Go Back to Search
             </Button>
           }
         />
@@ -157,33 +210,45 @@ const FundDetails = () => {
     <div style={{ padding: 24, maxWidth: 1200, margin: '0 auto' }}>
       {/* Fund Header */}
       <Card style={{ marginBottom: 24 }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 16 }}>
-          <div style={{ flex: 1 }}>
+        <div style={{ 
+          display: 'flex', 
+          justifyContent: 'space-between', 
+          alignItems: 'flex-start', 
+          marginBottom: 16,
+          flexWrap: 'wrap',
+          gap: 16
+        }}>
+          <div style={{ flex: 1, minWidth: 300 }}>
             <Space direction="vertical" size="small">
-              <Title level={2} style={{ margin: 0 }}>
-                {currentFund.name}
+              <Title level={2} style={{ margin: 0, wordBreak: 'break-word' }}>
+                {currentFund.name || currentFund.schemeName || 'Unknown Fund'}
               </Title>
-              <Space>
+              <Space wrap>
                 <Tag color="blue" style={{ fontSize: 14, padding: '4px 12px' }}>
-                  {currentFund.category}
+                  {currentFund.category || 'Other'}
                 </Tag>
-                <Tag color={getRiskColor(currentFund.riskLevel)} style={{ fontSize: 14, padding: '4px 12px' }}>
-                  {currentFund.riskLevel} Risk
+                <Tag 
+                  color={getRiskColor(currentFund.riskLevel)} 
+                  style={{ fontSize: 14, padding: '4px 12px' }}
+                >
+                  {currentFund.riskLevel ? `${currentFund.riskLevel} Risk` : 'Risk N/A'}
                 </Tag>
               </Space>
             </Space>
           </div>
-          <Space>
+          
+          <Space wrap>
             <Button 
               type="primary" 
-              icon={<StarOutlined />}
+              icon={<HeartOutlined />}
               loading={saving}
               onClick={handleSaveFund}
               size="large"
+              disabled={!isAuthenticated}
             >
-              Save to Watchlist
+              {saving ? 'Saving...' : 'Save to Watchlist'}
             </Button>
-            <Button onClick={() => navigate(-1)}>
+            <Button onClick={() => navigate(-1)} size="large">
               Back
             </Button>
           </Space>
@@ -194,9 +259,8 @@ const FundDetails = () => {
           <Col xs={24} sm={12} md={6}>
             <Statistic
               title="Current NAV"
-              value={currentFund.nav}
-              prefix={<DollarOutlined />}
-              suffix="₹"
+              value={currentFund.nav || 0}
+              prefix="₹"
               precision={2}
               valueStyle={{ color: '#1890ff', fontSize: 24 }}
             />
@@ -212,7 +276,7 @@ const FundDetails = () => {
           <Col xs={24} sm={12} md={6}>
             <Statistic
               title="Expense Ratio"
-              value={currentFund.expenseRatio}
+              value={currentFund.expenseRatio || 0}
               suffix="%"
               prefix={<PercentageOutlined />}
               precision={2}
@@ -238,9 +302,8 @@ const FundDetails = () => {
           <Col xs={24} sm={8}>
             <Statistic
               title="1 Year Returns"
-              value={currentFund.returns1Y}
+              value={formatReturn(currentFund.returns1Y)}
               suffix="%"
-              precision={2}
               valueStyle={{ 
                 color: getReturnColor(currentFund.returns1Y),
                 fontSize: 24
@@ -251,9 +314,8 @@ const FundDetails = () => {
           <Col xs={24} sm={8}>
             <Statistic
               title="3 Year Returns"
-              value={currentFund.returns3Y}
+              value={formatReturn(currentFund.returns3Y)}
               suffix="%"
-              precision={2}
               valueStyle={{ 
                 color: getReturnColor(currentFund.returns3Y),
                 fontSize: 24
@@ -264,9 +326,8 @@ const FundDetails = () => {
           <Col xs={24} sm={8}>
             <Statistic
               title="5 Year Returns"
-              value={currentFund.returns5Y}
+              value={formatReturn(currentFund.returns5Y)}
               suffix="%"
-              precision={2}
               valueStyle={{ 
                 color: getReturnColor(currentFund.returns5Y),
                 fontSize: 24
@@ -279,19 +340,30 @@ const FundDetails = () => {
 
       {/* Fund Details */}
       <Card title="Fund Details" style={{ marginBottom: 24 }}>
-        <Descriptions bordered column={{ xxl: 2, xl: 2, lg: 2, md: 1, sm: 1, xs: 1 }}>
+        <Descriptions 
+          bordered 
+          column={{ xxl: 2, xl: 2, lg: 2, md: 1, sm: 1, xs: 1 }}
+          size="middle"
+        >
           <Descriptions.Item 
             label={<><UserOutlined /> Fund Manager</>}
             span={1}
           >
-            <Text strong>{currentFund.fundManager}</Text>
+            <Text strong>{currentFund.fundManager || 'N/A'}</Text>
           </Descriptions.Item>
           
           <Descriptions.Item 
-            label={<><BankOutlined /> Fund Category</>}
+            label={<><BankOutlined /> Fund House</>}
             span={1}
           >
-            <Tag color="blue">{currentFund.category}</Tag>
+            <Text strong>{currentFund.amc || currentFund.fundHouse || 'N/A'}</Text>
+          </Descriptions.Item>
+          
+          <Descriptions.Item 
+            label="Fund Category"
+            span={1}
+          >
+            <Tag color="blue">{currentFund.category || 'Other'}</Tag>
           </Descriptions.Item>
           
           <Descriptions.Item 
@@ -299,7 +371,7 @@ const FundDetails = () => {
             span={1}
           >
             <Tag color={getRiskColor(currentFund.riskLevel)}>
-              {currentFund.riskLevel} Risk
+              {currentFund.riskLevel ? `${currentFund.riskLevel} Risk` : 'Risk N/A'}
             </Tag>
           </Descriptions.Item>
           
@@ -323,12 +395,14 @@ const FundDetails = () => {
             label={<><PercentageOutlined /> Expense Ratio</>}
             span={1}
           >
-            <Text strong>{currentFund.expenseRatio}%</Text>
+            <Text strong>
+              {currentFund.expenseRatio ? `${currentFund.expenseRatio}%` : 'N/A'}
+            </Text>
           </Descriptions.Item>
           
           <Descriptions.Item 
             label="Assets Under Management"
-            span={2}
+            span={1}
           >
             <Text strong style={{ fontSize: 16 }}>
               {formatAUM(currentFund.aum)}
@@ -339,7 +413,7 @@ const FundDetails = () => {
 
       {/* Fund Description */}
       {currentFund.description && (
-        <Card title="About This Fund">
+        <Card title="About This Fund" style={{ marginBottom: 24 }}>
           <Paragraph style={{ fontSize: 16, lineHeight: 1.6 }}>
             {currentFund.description}
           </Paragraph>
@@ -348,23 +422,40 @@ const FundDetails = () => {
 
       {/* Action Footer */}
       <Card style={{ marginTop: 24, textAlign: 'center' }}>
-        <Space size="large">
+        <Space size="large" wrap>
           <Button 
             type="primary" 
             size="large"
-            icon={<StarOutlined />}
+            icon={<HeartOutlined />}
             loading={saving}
             onClick={handleSaveFund}
+            disabled={!isAuthenticated}
           >
             {saving ? 'Saving...' : 'Save to Watchlist'}
           </Button>
+          
           <Button size="large" onClick={() => navigate('/')}>
             Search More Funds
           </Button>
-          <Button size="large" onClick={() => navigate('/saved-funds')}>
-            View Saved Funds
+          
+          {isAuthenticated && (
+            <Button size="large" onClick={() => navigate('/watchlist')}>
+              View Watchlist
+            </Button>
+          )}
+          
+          <Button size="large" onClick={() => navigate(-1)}>
+            Go Back
           </Button>
         </Space>
+        
+        {!isAuthenticated && (
+          <div style={{ marginTop: 16 }}>
+            <Text type="secondary">
+              Please <Button type="link" onClick={() => navigate('/login')}>login</Button> to save funds to your watchlist
+            </Text>
+          </div>
+        )}
       </Card>
     </div>
   );

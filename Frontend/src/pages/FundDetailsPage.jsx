@@ -1,8 +1,12 @@
 import React from 'react'
+import AuthLayout from '../layouts/AuthLayout'
+import FundDetails from '../features/fundDetails/FundDetails'
 
 const FundDetailsPage = () => {
   return (
-    <div>FundDetailsPage</div>
+    <AuthLayout>
+      <FundDetails />
+    </AuthLayout>
   )
 }
 

@@ -51,8 +51,9 @@ const SavedFundsList = () => {
     }
   }, [deleteError, dispatch]);
 
-  const handleViewFund = (fundId) => {
-    navigate(`/fund/${fundId}`);
+  const handleViewFund = (schemeCode) => {
+    // Navigate using schemeCode instead of fund ID
+    navigate(`/fund/${schemeCode}`);
   };
 
   const handleDeleteFund = async (savedFundId, fundName) => {
@@ -65,6 +66,7 @@ const SavedFundsList = () => {
   };
 
   const formatCurrency = (amount) => {
+    if (!amount || isNaN(amount)) return 'N/A';
     return new Intl.NumberFormat('en-IN', {
       style: 'currency',
       currency: 'INR',
@@ -74,6 +76,7 @@ const SavedFundsList = () => {
   };
 
   const formatAUM = (aum) => {
+    if (!aum || isNaN(aum)) return 'N/A';
     if (aum >= 10000000) {
       return `₹${(aum / 10000000).toFixed(1)} Cr`;
     } else if (aum >= 100000) {
@@ -83,6 +86,7 @@ const SavedFundsList = () => {
   };
 
   const getRiskColor = (riskLevel) => {
+    if (!riskLevel) return 'default';
     switch (riskLevel.toLowerCase()) {
       case 'low': return 'green';
       case 'moderate': return 'orange';
@@ -93,14 +97,17 @@ const SavedFundsList = () => {
   };
 
   const getReturnColor = (returnValue) => {
+    if (!returnValue || isNaN(returnValue)) return '#595959';
     return returnValue >= 0 ? '#52c41a' : '#f5222d';
   };
 
   const getReturnIcon = (returnValue) => {
+    if (!returnValue || isNaN(returnValue)) return null;
     return returnValue >= 0 ? <ArrowUpOutlined /> : <ArrowDownOutlined />;
   };
 
   const formatDate = (dateString) => {
+    if (!dateString) return 'N/A';
     return new Date(dateString).toLocaleDateString('en-IN', {
       year: 'numeric',
       month: 'short',
@@ -111,118 +118,88 @@ const SavedFundsList = () => {
   const columns = [
     {
       title: 'Fund Name',
-      dataIndex: ['fund', 'name'],
-      key: 'name',
+      dataIndex: 'schemeName',
+      key: 'schemeName',
       width: 300,
-      render: (name, record) => (
+      render: (schemeName, record) => (
         <Space direction="vertical" size="small">
           <Text strong style={{ fontSize: 14 }}>
-            {name}
+            {schemeName || 'Unknown Fund'}
           </Text>
           <Space>
             <Tag color="blue" style={{ fontSize: 12 }}>
-              {record.fund.category}
+              {record.category || 'Unknown'}
             </Tag>
-            <Tag color={getRiskColor(record.fund.riskLevel)} style={{ fontSize: 12 }}>
-              {record.fund.riskLevel} Risk
+            <Tag color="purple" style={{ fontSize: 12 }}>
+              {record.amc || 'Unknown AMC'}
             </Tag>
           </Space>
+          {record.notes && (
+            <Text type="secondary" style={{ fontSize: 12 }}>
+              Note: {record.notes}
+            </Text>
+          )}
         </Space>
       ),
     },
     {
-      title: 'NAV',
-      dataIndex: ['fund', 'nav'],
-      key: 'nav',
+      title: 'Scheme Code',
+      dataIndex: 'schemeCode',
+      key: 'schemeCode',
       width: 120,
-      render: (nav) => (
-        <Text strong style={{ color: '#1890ff' }}>
-          {formatCurrency(nav)}
-        </Text>
+      render: (schemeCode) => (
+        <Text code>{schemeCode || 'N/A'}</Text>
       ),
-      sorter: (a, b) => a.fund.nav - b.fund.nav,
     },
     {
-      title: '1Y Returns',
-      dataIndex: ['fund', 'returns1Y'],
-      key: 'returns1Y',
+      title: 'Fund Type',
+      dataIndex: 'fundType',
+      key: 'fundType',
       width: 120,
-      render: (returns) => (
-        <Space>
-          {getReturnIcon(returns)}
-          <Text style={{ color: getReturnColor(returns), fontWeight: 'bold' }}>
-            {returns}%
-          </Text>
-        </Space>
+      render: (fundType) => (
+        <Tag color="geekblue">
+          {fundType || 'OTHER'}
+        </Tag>
       ),
-      sorter: (a, b) => a.fund.returns1Y - b.fund.returns1Y,
     },
     {
-      title: '3Y Returns',
-      dataIndex: ['fund', 'returns3Y'],
-      key: 'returns3Y',
-      width: 120,
-      render: (returns) => (
-        <Space>
-          {getReturnIcon(returns)}
-          <Text style={{ color: getReturnColor(returns), fontWeight: 'bold' }}>
-            {returns}%
-          </Text>
-        </Space>
+      title: 'Category',
+      dataIndex: 'category',
+      key: 'category',
+      width: 150,
+      render: (category) => (
+        <Text>{category || 'Unknown'}</Text>
       ),
-      sorter: (a, b) => a.fund.returns3Y - b.fund.returns3Y,
     },
     {
-      title: '5Y Returns',
-      dataIndex: ['fund', 'returns5Y'],
-      key: 'returns5Y',
-      width: 120,
-      render: (returns) => (
-        <Space>
-          {getReturnIcon(returns)}
-          <Text style={{ color: getReturnColor(returns), fontWeight: 'bold' }}>
-            {returns}%
-          </Text>
-        </Space>
+      title: 'AMC',
+      dataIndex: 'amc',
+      key: 'amc',
+      width: 150,
+      render: (amc) => (
+        <Text>{amc || 'Unknown'}</Text>
       ),
-      sorter: (a, b) => a.fund.returns5Y - b.fund.returns5Y,
-    },
-    {
-      title: 'AUM',
-      dataIndex: ['fund', 'aum'],
-      key: 'aum',
-      width: 120,
-      render: (aum) => (
-        <Text>{formatAUM(aum)}</Text>
-      ),
-      sorter: (a, b) => a.fund.aum - b.fund.aum,
-    },
-    {
-      title: 'Expense Ratio',
-      dataIndex: ['fund', 'expenseRatio'],
-      key: 'expenseRatio',
-      width: 120,
-      render: (ratio) => (
-        <Text>{ratio}%</Text>
-      ),
-      sorter: (a, b) => a.fund.expenseRatio - b.fund.expenseRatio,
     },
     {
       title: 'Saved On',
-      dataIndex: 'savedAt',
-      key: 'savedAt',
+      dataIndex: 'createdAt',
+      key: 'createdAt',
       width: 120,
       render: (date) => (
         <Text type="secondary">
           {formatDate(date)}
         </Text>
       ),
-      sorter: (a, b) => new Date(a.savedAt).getTime() - new Date(b.savedAt).getTime(),
+      sorter: (a, b) => {
+        const dateA = new Date(a.createdAt || 0).getTime();
+        const dateB = new Date(b.createdAt || 0).getTime();
+        return dateA - dateB;
+      },
     },
     {
       title: 'Actions',
       key: 'actions',
-      width: 120,
+      width: 150,
       fixed: 'right',
       render: (_, record) => (
         <Space>
@@ -231,14 +208,14 @@ const SavedFundsList = () => {
             ghost
             size="small"
             icon={<EyeOutlined />}
-            onClick={() => handleViewFund(record.fund.id)}
+            onClick={() => handleViewFund(record.schemeCode)}
           >
             View
           </Button>
           <Popconfirm
             title="Remove from watchlist"
-            description={`Are you sure you want to remove ${record.fund.name} from your watchlist?`}
-            onConfirm={() => handleDeleteFund(record.id, record.fund.name)}
+            description={`Are you sure you want to remove ${record.schemeName || 'this fund'} from your watchlist?`}
+            onConfirm={() => handleDeleteFund(record._id, record.schemeName)}
             okText="Yes"
             cancelText="No"
             okButtonProps={{ danger: true }}
@@ -247,7 +224,7 @@ const SavedFundsList = () => {
               danger
               size="small"
               icon={<DeleteOutlined />}
-              loading={deleting === record.id}
+              loading={deleting === record._id}
             />
           </Popconfirm>
         </Space>
@@ -277,19 +254,19 @@ const SavedFundsList = () => {
     return <PageSpinner />;
   }
 
+  // Simplified stats calculation based on available data
   const calculateStats = () => {
     if (savedFunds.length === 0) return null;
     
-    const totalAUM = savedFunds.reduce((sum, fund) => sum + fund.fund.aum, 0);
-    const avgReturns1Y = savedFunds.reduce((sum, fund) => sum + fund.fund.returns1Y, 0) / savedFunds.length;
-    const avgReturns3Y = savedFunds.reduce((sum, fund) => sum + fund.fund.returns3Y, 0) / savedFunds.length;
-    const avgExpenseRatio = savedFunds.reduce((sum, fund) => sum + fund.fund.expenseRatio, 0) / savedFunds.length;
+    const fundTypes = [...new Set(savedFunds.map(fund => fund.fundType).filter(Boolean))];
+    const categories = [...new Set(savedFunds.map(fund => fund.category).filter(Boolean))];
+    const amcs = [...new Set(savedFunds.map(fund => fund.amc).filter(Boolean))];
 
     return {
-      totalAUM,
-      avgReturns1Y,
-      avgReturns3Y,
-      avgExpenseRatio
+      totalFunds: savedFunds.length,
+      uniqueFundTypes: fundTypes.length,
+      uniqueCategories: categories.length,
+      uniqueAMCs: amcs.length
     };
   };
 
@@ -315,38 +292,30 @@ const SavedFundsList = () => {
             <Col xs={24} sm={12} md={6}>
               <Statistic
                 title="Total Funds"
-                value={savedFunds.length}
+                value={stats.totalFunds}
                 prefix={<BankOutlined />}
                 valueStyle={{ color: '#1890ff' }}
               />
             </Col>
             <Col xs={24} sm={12} md={6}>
               <Statistic
-                title="Avg 1Y Returns"
-                value={stats.avgReturns1Y}
-                suffix="%"
-                precision={2}
-                valueStyle={{ color: getReturnColor(stats.avgReturns1Y) }}
-                prefix={getReturnIcon(stats.avgReturns1Y)}
+                title="Fund Types"
+                value={stats.uniqueFundTypes}
+                valueStyle={{ color: '#52c41a' }}
               />
             </Col>
             <Col xs={24} sm={12} md={6}>
               <Statistic
-                title="Avg 3Y Returns"
-                value={stats.avgReturns3Y}
-                suffix="%"
-                precision={2}
-                valueStyle={{ color: getReturnColor(stats.avgReturns3Y) }}
-                prefix={getReturnIcon(stats.avgReturns3Y)}
+                title="Categories"
+                value={stats.uniqueCategories}
+                valueStyle={{ color: '#722ed1' }}
               />
             </Col>
             <Col xs={24} sm={12} md={6}>
               <Statistic
-                title="Avg Expense Ratio"
-                value={stats.avgExpenseRatio}
-                suffix="%"
-                precision={2}
-                valueStyle={{ color: '#595959' }}
+                title="AMCs"
+                value={stats.uniqueAMCs}
+                valueStyle={{ color: '#fa8c16' }}
               />
             </Col>
           </Row>
@@ -389,8 +358,8 @@ const SavedFundsList = () => {
           <Table
             columns={columns}
             dataSource={savedFunds}
-            rowKey="id"
-            scroll={{ x: 1200 }}
+            rowKey="_id"
+            scroll={{ x: 1000 }}
             pagination={{
               total: savedFunds.length,
               pageSize: 10,

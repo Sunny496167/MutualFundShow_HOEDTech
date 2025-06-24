@@ -15,7 +15,12 @@ export const searchFunds = createAsyncThunk(
   'search/searchFunds',
   async (query, { rejectWithValue }) => {
     try {
-      const results = await searchMutualFunds(query);
+      // Add validation for empty query
+      if (!query || query.trim().length === 0) {
+        throw new Error('Search query cannot be empty');
+      }
+      
+      const results = await searchMutualFunds(query.trim());
       return results;
     } catch (error) {
       return rejectWithValue(error.message || 'Failed to search funds');
@@ -29,6 +34,11 @@ const searchSlice = createSlice({
   reducers: {
     setQuery: (state, action) => {
       state.query = action.payload;
+      // Clear results when query changes
+      if (!action.payload) {
+        state.results = [];
+        state.hasSearched = false;
+      }
     },
     clearSearch: (state) => {
       state.query = '';
@@ -37,6 +47,12 @@ const searchSlice = createSlice({
       state.hasSearched = false;
     },
     clearError: (state) => {
+      state.error = null;
+    },
+    // Add this to clear results without clearing query
+    clearResults: (state) => {
+      state.results = [];
+      state.hasSearched = false;
       state.error = null;
     },
   },
@@ -48,7 +64,8 @@ const searchSlice = createSlice({
       })
       .addCase(searchFunds.fulfilled, (state, action) => {
         state.loading = false;
-        state.results = action.payload;
+        // Handle both array and object responses
+        state.results = Array.isArray(action.payload) ? action.payload : [];
         state.hasSearched = true;
         state.error = null;
       })
@@ -56,9 +73,10 @@ const searchSlice = createSlice({
         state.loading = false;
         state.error = action.payload;
         state.hasSearched = true;
+        state.results = []; // Clear results on error
       });
   },
 });
 
-export const { setQuery, clearSearch, clearError } = searchSlice.actions;
+export const { setQuery, clearSearch, clearError, clearResults } = searchSlice.actions;
 export default searchSlice.reducer;

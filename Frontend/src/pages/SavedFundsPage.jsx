@@ -1,8 +1,12 @@
 import React from 'react'
+import AuthLayout from '../layouts/AuthLayout'
+import SavedFundsList from '../features/savedFunds/SavedFundsList'
 
 const SavedFundsPage = () => {
   return (
-    <div>SavedFundsPage</div>
+    <AuthLayout>
+      <SavedFundsList />
+    </AuthLayout>
   )
 }
 

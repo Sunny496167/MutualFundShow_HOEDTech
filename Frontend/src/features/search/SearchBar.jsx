@@ -1,101 +1,31 @@
+// src/components/SearchBar.js - Fixed version
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useDispatch, useSelector } from 'react-redux';
 import { Search, DollarSign, TrendingUp, TrendingDown, AlertCircle, X } from 'lucide-react';
-
-// Mock Redux hooks for demonstration
-const mockState = {
-  search: {
-    query: '',
-    results: [
-      {
-        id: '1',
-        name: 'HDFC Equity Fund',
-        category: 'Large Cap',
-        nav: 785.50,
-        aum: 25000000000,
-        riskLevel: 'Moderate',
-        fundManager: 'Prashant Jain',
-        expenseRatio: 1.75,
-        returns1Y: 12.5,
-        returns3Y: 15.2,
-        returns5Y: 18.8
-      },
-      {
-        id: '2',
-        name: 'SBI Small Cap Fund',
-        category: 'Small Cap',
-        nav: 142.30,
-        aum: 8500000000,
-        riskLevel: 'High',
-        fundManager: 'Rajesh Kumar',
-        expenseRatio: 2.25,
-        returns1Y: -5.2,
-        returns3Y: 22.1,
-        returns5Y: 25.4
-      }
-    ],
-    loading: false,
-    error: null,
-    hasSearched: true
-  }
-};
+import { searchFunds, setQuery, clearSearch, clearError } from '../features/search/searchSlice';
 
 const SearchBar = () => {
-  // Mock Redux state and dispatch
-  const [state, setState] = useState(mockState);
-  const { query, results, loading, error, hasSearched } = state.search;
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+  
+  // Use actual Redux state instead of mock
+  const { query, results, loading, error, hasSearched } = useSelector(state => state.search);
   const [searchValue, setSearchValue] = useState(query);
-
-  const dispatch = (action) => {
-    console.log('Dispatched action:', action);
-    // Mock dispatch behavior
-    if (action.type === 'search/setQuery') {
-      setState(prev => ({
-        ...prev,
-        search: { ...prev.search, query: action.payload }
-      }));
-    } else if (action.type === 'search/clearSearch') {
-      setState(prev => ({
-        ...prev,
-        search: { 
-          ...prev.search, 
-          query: '', 
-          results: [], 
-          error: null, 
-          hasSearched: false 
-        }
-      }));
-    } else if (action.type === 'search/searchFunds') {
-      setState(prev => ({
-        ...prev,
-        search: { ...prev.search, loading: true }
-      }));
-      // Simulate async search
-      setTimeout(() => {
-        setState(prev => ({
-          ...prev,
-          search: { 
-            ...prev.search, 
-            loading: false, 
-            hasSearched: true 
-          }
-        }));
-      }, 1000);
-    }
-  };
-
-  // Mock navigate function
-  const navigate = (path) => {
-    console.log('Navigate to:', path);
-  };
 
   useEffect(() => {
     setSearchValue(query);
   }, [query]);
 
-  const handleSearch = async () => {
+  const handleSearch = async (e) => {
+    // Prevent form submission if this is in a form
+    if (e) {
+      e.preventDefault();
+    }
+    
     if (searchValue.trim()) {
-      dispatch({ type: 'search/setQuery', payload: searchValue.trim() });
-      dispatch({ type: 'search/searchFunds', payload: searchValue.trim() });
+      dispatch(setQuery(searchValue.trim()));
+      dispatch(searchFunds(searchValue.trim()));
     }
   };
 
@@ -105,12 +35,23 @@ const SearchBar = () => {
 
   const handleKeyPress = (e) => {
     if (e.key === 'Enter') {
+      e.preventDefault(); // Prevent form submission
       handleSearch();
     }
   };
 
   const handleFundClick = (fundId) => {
+    // Use navigate instead of direct assignment
     navigate(`/fund/${fundId}`);
+  };
+
+  const handleClearSearch = () => {
+    dispatch(clearSearch());
+    setSearchValue('');
+  };
+
+  const handleClearError = () => {
+    dispatch(clearError());
   };
 
   const formatCurrency = (amount) => {
@@ -159,7 +100,8 @@ const SearchBar = () => {
     <div className="max-w-4xl mx-auto p-6 space-y-6">
       {/* Search Card */}
       <div className="bg-white rounded-xl shadow-lg border border-gray-100 p-6">
-        <div className="flex gap-3">
+        {/* Wrap in form to handle Enter key properly */}
+        <form onSubmit={handleSearch} className="flex gap-3">
           <div className="flex-1 relative">
             <input
               type="text"
@@ -172,8 +114,8 @@ const SearchBar = () => {
             <Search className="absolute right-4 top-1/2 transform -translate-y-1/2 w-5 h-5 text-gray-400" />
           </div>
           <button
-            onClick={handleSearch}
-            disabled={loading}
+            type="submit"
+            disabled={loading || !searchValue.trim()}
             className="px-6 py-3 bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 text-white font-medium rounded-lg transition-colors flex items-center gap-2 min-w-[120px] justify-center"
           >
             {loading ? (
@@ -185,7 +127,7 @@ const SearchBar = () => {
               </>
             )}
           </button>
-        </div>
+        </form>
 
         {error && (
           <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
@@ -196,7 +138,8 @@ const SearchBar = () => {
                 <p className="text-red-700 mt-1">{error}</p>
               </div>
               <button
-                onClick={() => dispatch({ type: 'search/clearSearch' })}
+                type="button"
+                onClick={handleClearError}
                 className="text-red-600 hover:text-red-800"
               >
                 <X className="w-5 h-5" />
@@ -216,7 +159,8 @@ const SearchBar = () => {
               </h2>
               {results.length > 0 && (
                 <button
-                  onClick={() => dispatch({ type: 'search/clearSearch' })}
+                  type="button"
+                  onClick={handleClearSearch}
                   className="text-blue-600 hover:text-blue-800 font-medium transition-colors"
                 >
                   Clear Results
