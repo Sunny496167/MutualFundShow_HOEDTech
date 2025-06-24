@@ -1,9 +1,10 @@
-// src/components/SearchBar.js - Fixed version
+// src/components/SearchBar.js - Fixed import path
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { Search, DollarSign, TrendingUp, TrendingDown, AlertCircle, X } from 'lucide-react';
-import { searchFunds, setQuery, clearSearch, clearError } from '../features/search/searchSlice';
+// Fixed import path - should match your store structure
+import { searchFunds, setQuery, clearSearch, clearError } from './searchSlice';
 
 const SearchBar = () => {
   const navigate = useNavigate();

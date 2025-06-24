@@ -17,6 +17,7 @@ import FundDetailsPage from './pages/FundDetailsPage';
 
 // Components
 import PrivateRoute from './components/PrivateRoute';
+import SearchBarPage from './pages/SearchBarPage';
 
 // Ant Design theme configuration
 const theme = {
@@ -62,6 +63,14 @@ function App() {
                 element={
                   <PrivateRoute>
                     <FundDetailsPage />
+                  </PrivateRoute>
+                } 
+              />
+              <Route 
+                path="/search" 
+                element={
+                  <PrivateRoute>
+                    <SearchBarPage />
                   </PrivateRoute>
                 } 
               />
